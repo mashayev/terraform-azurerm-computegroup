@@ -1,9 +1,9 @@
 provider "azurerm" {
-    version = "~> 0.3"
+  version = "~> 0.3"
 }
 
 module "os" {
-  source = "./os"
+  source       = "./os"
   vm_os_simple = "${ var.vm_os_simple }"
 }
 
@@ -12,7 +12,6 @@ resource "azurerm_resource_group" "vmss" {
   location = "${var.location}"
   tags     = "${var.tags}"
 }
-
 
 resource "azurerm_virtual_machine_scale_set" "vm-linux" {
   count               = "${ contains(list("${var.vm_os_simple}","${var.vm_os_offer}"), "WindowsServer") ? 0 : 1 }"
@@ -76,14 +75,15 @@ resource "azurerm_virtual_machine_scale_set" "vm-linux" {
     }
   }
 
-  extension { 
-    name = "vmssextension"
-    publisher = "Microsoft.OSTCExtensions"
-    type = "CustomScriptForLinux"
-    type_handler_version = "1.2"
+  extension {
+    name                 = "vmssextension"
+    publisher            = "Microsoft.Azure.Extensions"
+    type                 = "CustomScript"
+    type_handler_version = "2.0"
+
     settings = <<SETTINGS
     {
-        "commandToExecute": "${var.cmd_extension}"
+        "commandToExecute": "sudo apt-get update && sudo apt-get install -y nginx"
     }
     SETTINGS
   }
@@ -143,10 +143,11 @@ resource "azurerm_virtual_machine_scale_set" "vm-windows" {
   }
 
   extension {
-    name = "vmssextension"
-    publisher = "Microsoft.Compute"
-    type = "CustomScriptExtension"
+    name                 = "vmssextension"
+    publisher            = "Microsoft.Compute"
+    type                 = "CustomScriptExtension"
     type_handler_version = "1.8"
+
     settings = <<SETTINGS
     {
         "commandToExecute": "${var.cmd_extension}"
